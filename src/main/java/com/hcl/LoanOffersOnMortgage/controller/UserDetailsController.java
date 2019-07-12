@@ -1,5 +1,6 @@
 package com.hcl.LoanOffersOnMortgage.controller;
 
+import java.text.ParseException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,10 +33,11 @@ public class UserDetailsController {
 	/**
 	  * @desc from this controller we are going to check whether user is valid for offers or not and fetch the offer details
 	  * @param $User user : we are passing user entity and checking if user is valid then the user details will be saved in user table.
+	 * @throws ParseException 
 	*/	
 	
 	@PostMapping("/userDetails")
-	public ResponseEntity<List<Offers>> addUserDetails(@RequestBody User user) {
+	public ResponseEntity<List<Offers>> addUserDetails(@RequestBody User user) throws ParseException {
 
 		List<Offers> propertyList=propertyRatesService.checkOfferapplicable(user);
 		

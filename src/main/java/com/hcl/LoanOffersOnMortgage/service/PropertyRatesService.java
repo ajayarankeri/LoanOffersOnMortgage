@@ -1,5 +1,9 @@
 package com.hcl.LoanOffersOnMortgage.service;
 
+import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,10 +30,11 @@ public class PropertyRatesService {
 	UserRepository userRepository;
 	
 	/**
-	  * @desc In this function we are checking all conditions.
+	  * @throws ParseException 
+	 * @desc In this function we are checking all conditions.
 	*/	
 
-	public List<Offers> checkOfferapplicable(User user) {
+	public List<Offers> checkOfferapplicable(User user) throws ParseException {
 		
 		Optional<PropertyRates> optionalPropertyRates = propertyRatesRepository.findByPincode(user.getPincode());
 		
@@ -42,9 +47,11 @@ public class PropertyRatesService {
 			PropertyRates pr =optionalPropertyRates.get();
 			double myPropertyValue=calculatePropertyValue(pr.getSqure_feet_value(),user.getArea());			
 			
-			boolean eligibleAmountCriteria=getEligibleAmountCriteria(myPropertyValue);
+			boolean eligibleAmountCriteria=getUserValidation(user);
 			 if(eligibleAmountCriteria) {
 				 userRepository.save(user);
+			 }else {
+				 System.out.println("User is not valid for the creiteria");
 			 }
 			 
 			offerList=offersRepository.findByLoanAmountIsLessThanEqual(myPropertyValue*0.8);
@@ -69,14 +76,24 @@ public class PropertyRatesService {
 		
 	}
 
-	private boolean getEligibleAmountCriteria(double myPropertyValue) {
-		   if(myPropertyValue*0.8>500000) {
-			   return true;
-		   }else {
-			   return false;
-		   }
-			   
-		
+	private boolean getUserValidation(User user) throws ParseException {
+	
+		if(user.getSalaryMonthly()<10000) {			
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+			LocalDate DOB = LocalDate.parse(user.getDOB().toString(), formatter);
+			
+			int age= Period.between(DOB,LocalDate.now()).getYears();
+			// System.out.println("BirtDate"+DOB+" currentTime"+LocalDate.now()+" Age:"+age);
+			
+			if(age<25) {
+				return true;
+			}else {
+				return false;
+			}
+			
+		}else {
+			return false;
+		}		
 	}
 
 	private double calculatePropertyValue(double squre_feet_value, int area) {
